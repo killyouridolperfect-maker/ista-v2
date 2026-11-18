@@ -3,239 +3,156 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2563eb">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#1d5fd1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="クリップ帳">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg">
-<link rel="apple-touch-icon" href="icon.svg">
-<title>クリップ履歴</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>クリップ帳</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap">
 <style>
-:root{--bg:#f3f5f9;--card:#fff;--text:#111827;--sub:#6b7280;--line:#e5e7eb;--pri:#2563eb;--priText:#fff;--pin:#f59e0b;--danger:#dc2626;--ok:#16a34a}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#1a1d24;--text:#f3f4f6;--sub:#9ca3af;--line:#2a2e37;--pri:#3b82f6}}
+/* Layout: one column tool. Sticky intake bar (paste box + search) on top, day-grouped cards below; tap a card = copy. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --sunken:#e3e8ef; --fg:#18202b; --muted:#5d6878; --line:#d4dbe4;
+  --accent:#1d5fd1; --accent-fg:#ffffff; --accent-soft:#dce8fb;
+  --pin:#c77700; --ok:#13804a; --ok-soft:#d9f2e4; --danger:#c8312b; --mark:#ffe58a;
+  --toast-bg:#18202b; --toast-fg:#ffffff; --toast-link:#9cc3ff;
+  --font-ui:system-ui,-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;
+  --font-data:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#18202a; --sunken:#212b37; --fg:#e8edf3; --muted:#97a3b3; --line:#2b3644;
+  --accent:#5b97f5; --accent-fg:#0b1220; --accent-soft:#1d2d47;
+  --pin:#f2b34a; --ok:#4cc98a; --ok-soft:#173a2a; --danger:#ff7a72; --mark:#6b5a12;
+  --toast-bg:#e8edf3; --toast-fg:#0f141b; --toast-link:#1d5fd1; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#18202a; --sunken:#212b37; --fg:#e8edf3; --muted:#97a3b3; --line:#2b3644;
+  --accent:#5b97f5; --accent-fg:#0b1220; --accent-soft:#1d2d47;
+  --pin:#f2b34a; --ok:#4cc98a; --ok-soft:#173a2a; --danger:#ff7a72; --mark:#6b5a12;
+  --toast-bg:#e8edf3; --toast-fg:#0f141b; --toast-link:#1d5fd1; color-scheme:dark}
+
+html,body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;padding-bottom:env(safe-area-inset-bottom)}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 14px 8px;border-bottom:1px solid var(--line)}
-.row{display:flex;gap:8px;align-items:center}
-input[type=search]{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px}
-button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
-.primary{background:var(--pri);color:var(--priText);padding:12px 16px;border-radius:12px;font-weight:700;white-space:nowrap}
-.tabs{display:flex;gap:6px;margin-top:8px;align-items:center}
-.tab{padding:6px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:14px}
-.tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
-.sp{flex:1}
-.mini{font-size:13px;color:var(--sub);padding:6px 8px}
-main{padding:10px 14px 120px;max-width:720px;margin:0 auto}
-.day{font-size:13px;color:var(--sub);margin:16px 4px 6px;font-weight:700}
-.item{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden;transition:background .15s}
-.item.flash{background:color-mix(in srgb,var(--ok) 22%,var(--card))}
-.body{display:block;width:100%;text-align:left;padding:12px 14px 6px}
-.txt{white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.item.open .txt{-webkit-line-clamp:unset}
-.meta{display:flex;align-items:center;gap:4px;padding:0 6px 6px 14px;color:var(--sub);font-size:12px}
-.meta .t{flex:1}
-.ic{width:40px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--sub)}
-.ic:active{background:var(--line)}
-.ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.ic.on{color:var(--pin)}.ic.on svg{fill:var(--pin)}
-.ic.del:active{color:var(--danger)}
-.empty{text-align:center;color:var(--sub);padding:60px 20px}
-#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s;z-index:20;display:flex;gap:14px;align-items:center;max-width:92vw}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--font-ui)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+header .wrap{padding-block:12px 10px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;align-items:baseline;gap:10px}
+h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.02em}
+.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;min-width:0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.status.cloud .dot{background:var(--ok)}
+.status.warn .dot{background:var(--pin)}
+
+.intake{display:flex;gap:8px;align-items:stretch;background:var(--surface);border:2px dashed var(--accent);border-radius:var(--r);padding:6px}
+.intake:focus-within{border-style:solid}
+#inbox{flex:1;min-width:0;border:0;background:transparent;resize:none;padding:8px 8px;min-height:44px;max-height:30vh;font-size:16px;line-height:1.5}
+#inbox::placeholder{color:var(--accent);font-weight:600}
+#inbox:focus{outline:none}
+#pasteBtn,#saveTyped{background:var(--accent);color:var(--accent-fg);border-radius:10px;padding:0 16px;font-weight:700;white-space:nowrap}
+
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#q{flex:1 1 180px;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:16px}
+.chips{display:flex;gap:6px}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.count{font:500 12px var(--font-data);color:var(--muted);font-variant-numeric:tabular-nums}
+
+main .wrap{padding-block:6px 120px}
+.day{display:flex;align-items:center;gap:10px;margin:18px 2px 8px;font-size:13px;font-weight:700;color:var(--muted)}
+.day::after{content:"";flex:1;height:1px;background:var(--line)}
+.list{display:flex;flex-direction:column;gap:8px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:background-color .2s,border-color .2s}
+.card.pinned{border-color:color-mix(in srgb,var(--pin) 55%,var(--line))}
+.card.copied{background:var(--ok-soft);border-color:var(--ok)}
+.hit{display:block;width:100%;text-align:left;padding:12px 14px 4px;min-width:0}
+.txt{white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.card.open .txt{display:block}
+mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
+.meta{display:flex;align-items:center;gap:2px;padding:0 6px 6px 14px;min-height:42px}
+.stamp{flex:1;font:500 12px var(--font-data);color:var(--muted);font-variant-numeric:tabular-nums;display:flex;gap:10px;align-items:center;min-width:0}
+.done{display:none;font:700 12px var(--font-ui);color:var(--ok)}
+.card.copied .done{display:inline}
+.ib{width:42px;height:38px;border-radius:10px;display:grid;place-items:center;color:var(--muted)}
+.ib:hover{background:var(--sunken)}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ib.on{color:var(--pin)} .ib.on svg{fill:currentColor}
+.ib.more{width:auto;padding:0 10px;font-size:13px;font-weight:600}
+
+.empty{margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.empty h2{margin:0 0 12px;font-size:16px}
+.empty ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:8px}
+.empty p{margin:0;color:var(--muted)}
+
+.scrim{position:fixed;inset:0;background:rgba(10,14,20,.5);z-index:30;display:grid;place-items:center;padding:16px}
+.sheet{background:var(--surface);border-radius:18px;width:min(640px,100%);padding:16px;display:flex;flex-direction:column;gap:12px;max-height:90vh}
+.sheet h2{margin:0;font-size:16px}
+#editTa{width:100%;min-height:40vh;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);resize:vertical;font-size:16px;line-height:1.55}
+.row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.btn{padding:11px 18px;border-radius:12px;background:var(--sunken);font-weight:700}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--toast-bg);color:var(--toast-fg);border-radius:12px;padding:12px 16px;display:flex;gap:16px;align-items:center;z-index:40;
+  transition:opacity .18s,transform .18s;max-width:calc(100vw - 32px);font-weight:600}
 #toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-#toast button{color:#93c5fd;font-weight:700}
-dialog{border:0;border-radius:18px;padding:0;width:min(640px,94vw);background:var(--card);color:var(--text)}
-dialog::backdrop{background:rgba(0,0,0,.5)}
-dialog form{padding:16px;display:flex;flex-direction:column;gap:12px}
-textarea{width:100%;min-height:42vh;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:16px/1.5 inherit;resize:vertical}
-.btns{display:flex;gap:8px;justify-content:flex-end}
-.btns button{padding:12px 18px;border-radius:12px;background:var(--line);font-weight:600}
-.btns .primary{background:var(--pri)}
-h2{margin:0;font-size:16px}
+#undo{color:var(--toast-link);font-weight:800}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.foot{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.foot .btn{font-size:14px;padding:9px 14px}
 </style>
 </head>
 <body>
 <header>
-  <div class="row">
-    <input id="q" type="search" placeholder="検索" aria-label="検索">
-    <button class="primary" id="paste">＋ 貼り付け保存</button>
-  </div>
-  <div class="tabs">
-    <button class="tab on" data-f="all">すべて</button>
-    <button class="tab" data-f="pin">★ ピン留め</button>
-    <span class="sp"></span>
-    <button class="mini" id="menu">バックアップ</button>
+  <div class="wrap">
+    <div class="top">
+      <h1>クリップ帳</h1>
+      <div class="status" id="status"><span class="dot"></span><span id="statusText">読み込み中…</span></div>
+    </div>
+    <div class="intake">
+      <textarea id="inbox" rows="1" placeholder="またはここに貼り付け" aria-label="貼り付けて保存"></textarea>
+      <button id="saveTyped" hidden>保存</button>
+      <button id="pasteBtn">＋ 貼り付け</button>
+    </div>
+    <div class="tools">
+      <input id="q" type="search" placeholder="履歴を検索" aria-label="履歴を検索">
+      <div class="chips">
+        <button class="chip" id="fAll" aria-pressed="true">すべて</button>
+        <button class="chip" id="fPin" aria-pressed="false">★ ピン</button>
+      </div>
+      <span class="count" id="count"></span>
+    </div>
   </div>
 </header>
-<main id="list"></main>
-<div id="toast"><span id="tmsg"></span><button id="undo" hidden>元に戻す</button></div>
 
-<dialog id="dlg">
-  <form method="dialog" id="form">
-    <h2 id="dtitle">編集</h2>
-    <textarea id="ta" aria-label="内容"></textarea>
-    <div class="btns">
-      <button value="cancel" type="button" id="cancel">キャンセル</button>
-      <button class="primary" value="ok" id="save">保存</button>
+<main><div class="wrap"><div id="list"></div>
+  <div class="foot"><button class="btn" id="expBtn">バックアップを保存</button><button class="btn" id="impBtn">バックアップから戻す</button>
+  <input type="file" id="impFile" accept="application/json,.json" hidden></div></div></main>
+
+<div class="scrim" id="editor" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <h2 id="editTitle">編集</h2>
+    <textarea id="editTa" aria-label="内容"></textarea>
+    <div class="row">
+      <button class="btn" id="editCancel">キャンセル</button>
+      <button class="btn primary" id="editSave">保存</button>
     </div>
-  </form>
-</dialog>
-<dialog id="bk">
-  <form method="dialog">
-    <h2>バックアップ</h2>
-    <p style="margin:0;color:var(--sub);font-size:14px">データはこの端末のブラウザ内にだけ保存されます。ブラウザのデータ削除で消えるため、定期的に書き出してください。</p>
-    <div class="btns" style="justify-content:flex-start;flex-wrap:wrap">
-      <button type="button" id="exp">書き出し (JSON)</button>
-      <button type="button" id="imp">読み込み</button>
-      <button type="button" id="clr" style="color:var(--danger)">ピン以外を全削除</button>
-    </div>
-    <div class="btns"><button value="close">閉じる</button></div>
-    <input type="file" id="file" accept="application/json" hidden>
-  </form>
-</dialog>
+  </div>
+</div>
 
-<script>
-const KEY='clipmgr.v1', MAX=2000;
-const $=s=>document.querySelector(s);
-let items=load(), filter='all', query='', lastClip='';
+<div id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="undo" hidden>元に戻す</button></div>
 
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){toast('保存容量がいっぱいです。古い履歴を削除してください')}}
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-
-function add(text){
-  text=text.replace(/\s+$/,'');
-  if(!text.trim())return false;
-  const dup=items.find(i=>i.text===text);
-  if(dup){dup.ts=Date.now();items.sort(cmp);save();render();return 'dup'}
-  items.unshift({id:uid(),text,ts:Date.now(),pin:false});
-  if(items.length>MAX){const keep=items.filter(i=>i.pin);const rest=items.filter(i=>!i.pin).slice(0,MAX-keep.length);items=[...keep,...rest].sort(cmp)}
-  save();render();return true;
-}
-const cmp=(a,b)=>b.ts-a.ts;
-
-async function copy(text){
-  try{await navigator.clipboard.writeText(text);return true}catch(e){}
-  const t=document.createElement('textarea');t.value=text;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();
-  let ok=false;try{ok=document.execCommand('copy')}catch(e){}t.remove();return ok;
-}
-
-let tTimer,undoFn;
-function toast(msg,undo){
-  $('#tmsg').textContent=msg;undoFn=undo;$('#undo').hidden=!undo;
-  $('#toast').classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(()=>$('#toast').classList.remove('show'),undo?5000:1600);
-}
-$('#undo').onclick=()=>{undoFn&&undoFn();$('#toast').classList.remove('show')};
-
-function dayLabel(ts){
-  const d=new Date(ts),n=new Date(),s=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
-  const diff=Math.round((s(n)-s(d))/864e5);
-  if(diff===0)return'今日';if(diff===1)return'昨日';
-  return d.getFullYear()===n.getFullYear()?`${d.getMonth()+1}月${d.getDate()}日`:`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
-}
-const hm=ts=>{const d=new Date(ts);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
-const svg=p=>`<svg viewBox="0 0 24 24">${p}</svg>`;
-const I={star:svg('<path d="M12 3l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/>'),
- edit:svg('<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13 7l4 4"/>'),
- del:svg('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
- more:svg('<path d="M6 9l6 6 6-6"/>')};
-const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-
-function render(){
-  const q=query.trim().toLowerCase();
-  const list=items.filter(i=>(filter==='all'||i.pin)&&(!q||i.text.toLowerCase().includes(q))).sort(cmp);
-  const el=$('#list');
-  if(!list.length){el.innerHTML=`<div class="empty">${items.length?'見つかりません':'まだ履歴がありません<br>コピーしたら「＋ 貼り付け保存」を押してください'}</div>`;return}
-  let html='',last='';
-  for(const i of list){
-    const d=dayLabel(i.ts);if(d!==last){html+=`<div class="day">${d}</div>`;last=d}
-    html+=`<div class="item" data-id="${i.id}">
-      <button class="body" data-a="copy"><div class="txt">${esc(i.text)}</div></button>
-      <div class="meta"><span class="t">${hm(i.ts)} ・ ${i.text.length}文字</span>
-        ${i.text.length>90||i.text.split('\n').length>3?`<button class="ic" data-a="open" aria-label="全文表示">${I.more}</button>`:''}
-        <button class="ic ${i.pin?'on':''}" data-a="pin" aria-label="ピン留め">${I.star}</button>
-        <button class="ic" data-a="edit" aria-label="編集">${I.edit}</button>
-        <button class="ic del" data-a="del" aria-label="削除">${I.del}</button></div></div>`;
-  }
-  el.innerHTML=html;
-}
-
-$('#list').addEventListener('click',async e=>{
-  const b=e.target.closest('[data-a]');if(!b)return;
-  const card=b.closest('.item'),it=items.find(x=>x.id===card.dataset.id);if(!it)return;
-  const a=b.dataset.a;
-  if(a==='copy'){
-    const ok=await copy(it.text);
-    if(ok){card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),500);lastClip=it.text;toast('コピーしました ✓')}else toast('コピーできませんでした');
-  }else if(a==='open'){card.classList.toggle('open')}
-  else if(a==='pin'){it.pin=!it.pin;save();render()}
-  else if(a==='edit'){openEdit(it)}
-  else if(a==='del'){
-    const idx=items.indexOf(it);items.splice(idx,1);save();render();
-    toast('削除しました',()=>{items.splice(idx,0,it);save();render()});
-  }
-});
-
-let editing=null;
-function openEdit(it){editing=it;$('#dtitle').textContent='編集';$('#ta').value=it.text;$('#dlg').showModal();$('#ta').focus()}
-$('#cancel').onclick=()=>$('#dlg').close();
-$('#form').addEventListener('submit',e=>{
-  if(e.submitter&&e.submitter.id==='save'&&editing){
-    const v=$('#ta').value;
-    if(!v.trim()){e.preventDefault();toast('空にはできません');return}
-    editing.text=v;save();render();toast('保存しました ✓');
-  }
-});
-
-async function pasteSave(auto){
-  let text='';
-  try{text=await navigator.clipboard.readText()}
-  catch(e){
-    if(auto)return;
-    editing=null;$('#dtitle').textContent='ここに貼り付けて保存';$('#ta').value='';
-    $('#dlg').showModal();$('#ta').focus();
-    $('#form').addEventListener('submit',function h(ev){
-      $('#form').removeEventListener('submit',h);
-      if(ev.submitter&&ev.submitter.id==='save'){const r=add($('#ta').value);toast(r?'保存しました ✓':'空です')}
-    });
-    return;
-  }
-  if(!text||text===lastClip&&auto)return;
-  lastClip=text;
-  const r=add(text);
-  if(r===true)toast('保存しました ✓');else if(r==='dup')toast('既に保存済み（先頭に移動）');else if(!auto)toast('クリップボードが空です');
-}
-$('#paste').onclick=()=>pasteSave(false);
-// アプリを開いた/戻ってきた時、権限があれば自動で取り込み
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)pasteSave(true)});
-window.addEventListener('focus',()=>pasteSave(true));
-
-$('#q').addEventListener('input',e=>{query=e.target.value;render()});
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));filter=t.dataset.f;render()});
-
-$('#menu').onclick=()=>$('#bk').showModal();
-$('#exp').onclick=()=>{
-  const blob=new Blob([JSON.stringify(items,null,1)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='clip-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);
-};
-$('#imp').onclick=()=>$('#file').click();
-$('#file').onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{
-    const arr=JSON.parse(await f.text());if(!Array.isArray(arr))throw 0;
-    const have=new Set(items.map(i=>i.text));let n=0;
-    for(const x of arr)if(x&&typeof x.text==='string'&&!have.has(x.text)){items.push({id:uid(),text:x.text,ts:+x.ts||Date.now(),pin:!!x.pin});have.add(x.text);n++}
-    items.sort(cmp);save();render();toast(n+'件を読み込みました');
-  }catch(_){toast('読み込めないファイルです')}
-  e.target.value='';
-};
-$('#clr').onclick=()=>{
-  if(!confirm('ピン留め以外の履歴をすべて削除します。よろしいですか？'))return;
-  const bak=items;items=items.filter(i=>i.pin);save();render();$('#bk').close();toast('削除しました',()=>{items=bak;save();render()});
-};
-
-render();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-pasteSave(true);
-</script>
+<script src="app.js"></script>
 </body>
 </html>
