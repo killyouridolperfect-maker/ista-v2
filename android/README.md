@@ -1,0 +1,21 @@
+# クリップ帳（Android アプリ）
+
+他のアプリで「コピー」した文字を自動で履歴に残す Android アプリ。
+
+## ダウンロード
+https://github.com/killyouridolperfect-maker/ista-v2/releases/latest/download/clipcho.apk
+
+## 保存のしかた
+- 自動：ユーザー補助「クリップ帳 自動保存」をオンにすると、「コピー」ボタンや「コピーしました」表示を検知して保存
+- 文字を選んだときのメニュー →「クリップ帳に保存」
+- 共有 →「クリップ帳に保存」
+- 通知の「今のコピーを保存」
+- アプリを開くと、コピー中の文字を自動で取り込み
+
+## 安全
+- INTERNET 権限なし。保存内容が外部に送られることはない
+- パスワード管理アプリが「機密」として扱うコピーは保存しない
+
+## ビルド
+`.github/workflows/android-apk.yml` が push ごとに APK を作成し、Releases に公開する。
+署名鍵 `app/clipcho.keystore` は上書き更新のための個人用の固定鍵。

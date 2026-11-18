@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">クリップ帳</string>
+    <string name="save_label">クリップ帳に保存</string>
+    <string name="a11y_label">クリップ帳 自動保存</string>
+    <string name="a11y_desc">他のアプリで「コピー」を押したときに、その文字を自動でクリップ帳に保存します。このアプリはインターネットに接続できないため、保存した内容が外部に送られることはありません。パスワード管理アプリがコピーした内容は保存しません。</string>
+</resources>
