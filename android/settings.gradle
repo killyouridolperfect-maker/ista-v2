@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ClipCho"
-include ':app'
+include ':app', ':kiracome'

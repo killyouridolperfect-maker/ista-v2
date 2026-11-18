@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APKs
 
 on:
   push:
@@ -29,22 +29,27 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build release APK
+      - name: Build release APKs
         env:
           VERSION_CODE: ${{ github.run_number }}
         run: gradle --no-daemon assembleRelease
 
       - name: Collect APK
-        run: cp app/build/outputs/apk/release/app-release.apk ../clipcho.apk
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk ../clipcho.apk
+          cp kiracome/build/outputs/apk/release/kiracome-release.apk ../kiracome.apk
 
       - name: Publish download
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-${{ github.run_number }}
-          name: クリップ帳 Android 1.0.${{ github.run_number }}
+          name: Android アプリ 1.0.${{ github.run_number }}（クリップ帳・キラコメ辞書）
           target_commitish: ${{ github.sha }}
           make_latest: true
           body: |
-            スマホのChromeで次のURLを開くとダウンロードできます（常に最新版）:
-            https://github.com/${{ github.repository }}/releases/latest/download/clipcho.apk
-          files: clipcho.apk
+            スマホのChromeで開くとダウンロードできます（常に最新版）:
+            クリップ帳: https://github.com/${{ github.repository }}/releases/latest/download/clipcho.apk
+            キラコメ辞書: https://github.com/${{ github.repository }}/releases/latest/download/kiracome.apk
+          files: |
+            clipcho.apk
+            kiracome.apk

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- big four-point sparkle -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M50,28 Q53,47 72,50 Q53,53 50,72 Q47,53 28,50 Q47,47 50,28 Z" />
+    <!-- small sparkle -->
+    <path android:fillColor="#FFE58A"
+        android:pathData="M70,30 Q71,37 78,38 Q71,39 70,46 Q69,39 62,38 Q69,37 70,30 Z" />
+    <!-- dot -->
+    <path android:fillColor="#9CE6F7"
+        android:pathData="M68,68 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+</vector>

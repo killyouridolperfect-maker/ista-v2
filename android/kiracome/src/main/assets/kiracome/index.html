@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>キラコメ辞書</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="キラコメ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="robots" content="noindex">
+<meta name="description" content="「きら」と打つだけでキラコメがずらっと出る。ライバー・リスナーのためのコメント辞書。タップでコピーして配信のコメント欄に貼るだけ。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="キラコメ辞書">
+<meta property="og:description" content="「きら」と打つだけでキラコメがずらっと出る。193種類＋デコ42パターン、タップでコピー。">
+<meta property="og:url" content="https://ista.junhousing.co.jp/kiracome/">
+<meta property="og:image" content="https://ista.junhousing.co.jp/kiracome/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800&display=swap" rel="stylesheet">
+<style>
+  /* 白背景の単一ライトテーマ（ピンク＋ティールの差し色）。上に固定の入力欄とカテゴリ、下に候補がずらっと並ぶ1カラム */
+  :root{
+    --bg:#ffffff; --panel:#fbf7fc; --line:#ebe2f0;
+    --ink:#2a2233; --muted:#776a88;
+    --accent:#e2327c; --accent2:#0a7fa0; --star:#f2a100;
+    --display:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5;-webkit-tap-highlight-color:transparent}
+  .top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 16px 10px}
+  .wrap{max-width:560px;margin:0 auto;display:grid;gap:9px}
+  .ttl{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  h1{font-family:var(--display);font-size:22px;letter-spacing:.02em}
+  .sub{font-size:11px;color:var(--muted)}
+  .sub b{color:var(--accent2);font-variant-numeric:tabular-nums}
+  .fields{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
+  label{display:grid;gap:4px;font-size:11px;color:var(--muted)}
+  input{width:100%;background:var(--panel);border:2px solid var(--line);border-radius:12px;color:var(--ink);font-size:17px;padding:10px 12px;font-family:var(--body)}
+  input:focus{outline:none;border-color:var(--accent)}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:var(--body)}
+  .chip.sp{border-color:var(--accent2);color:var(--accent2)}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .row{box-shadow:0 1px 2px rgba(60,30,80,.05)}
+  .install{display:none;background:var(--panel);border:1px dashed var(--accent2);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--ink)}
+  .install b{color:var(--accent2)}
+  main{max-width:560px;margin:0 auto;padding:12px 16px 40px;display:grid;gap:18px}
+  .status{font-size:12px;color:var(--muted)}
+  .status b{color:var(--accent2);font-variant-numeric:tabular-nums}
+  section h2{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+  section h2 span:last-child{font-variant-numeric:tabular-nums;flex:none}
+  .list{display:grid;gap:6px}
+  .row{display:flex;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .cp{flex:1;display:flex;align-items:center;gap:10px;text-align:left;background:none;border:none;padding:12px;color:var(--ink);font-size:16px;cursor:pointer;font-family:var(--body);min-width:0}
+  .cp .t{flex:1;word-break:break-all}
+  .cp .p{flex:none;font-size:11px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:3px 9px}
+  .row.done .cp .p{background:var(--accent);color:#fff}
+  .fav{flex:none;width:46px;background:none;border:none;border-left:1px solid var(--line);color:var(--muted);font-size:18px;cursor:pointer}
+  .fav.on{color:var(--star)}
+  .hist .row{border-color:var(--accent2)}
+  .empty{font-size:13px;color:var(--muted);background:var(--panel);border-radius:12px;padding:14px}
+  .again{justify-self:start;background:var(--accent2);color:var(--bg);border:none;border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+  button:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--accent);color:#fff;font-weight:700;font-size:14px;border-radius:999px;padding:10px 18px;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
+  .toast.show{opacity:1}
+  footer{max-width:560px;margin:0 auto;padding:0 16px calc(32px + env(safe-area-inset-bottom));font-size:11px;color:var(--muted)}
+  .del{flex:none;width:52px;background:none;border:none;border-left:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--body)}
+  .del.arm{background:var(--accent);color:#fff}
+  .mine-add{display:flex;gap:8px}
+  .mine-add input{flex:1;min-width:0}
+  .mine-add button{flex:none;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:0 18px;font-weight:700;font-size:15px;cursor:pointer;font-family:var(--body)}
+  .hint{font-size:12px;color:var(--muted);margin:6px 0 10px}
+  @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+  @media (max-width:400px){.fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <div class="ttl"><h1>キラコメ辞書</h1><span class="sub" id="sub"></span></div>
+    <div class="fields">
+      <label for="q">探す言葉（例：きら・誕生日・天使・歌）
+        <input id="q" type="search" value="きら" autocomplete="off" enterkeyhint="search">
+      </label>
+      <label for="nm">推しの名前（候補に入ります・次回も残ります）
+        <input id="nm" type="text" placeholder="例：ゆいちゃん" autocomplete="off">
+      </label>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="install" id="install">📱 <b>アプリにする方法</b>：Safari下の共有ボタン →「ホーム画面に追加」</div>
+  </div>
+</div>
+
+<main>
+  <div class="status" id="status"></div>
+  <section class="hist" id="histSec" hidden>
+    <h2><span>さっき使った</span><span></span></h2>
+    <div class="list" id="hist"></div>
+  </section>
+  <div id="out"></div>
+</main>
+<footer>タップでコピーして、配信アプリのコメント欄に貼ってね。☆でお気に入り、「✏️マイコメ」で自分のコメントを登録できます。連投しすぎは配信アプリの規約違反になることがあるので、ほどほどに。</footer>
+<div class="toast" id="toast" role="status">コピーしました</div>
+
+<script>
+// Android app: route clipboard writes through the native bridge (WebView has no async clipboard on file:// pages)
+(function(){
+  if(!window.AndroidBridge) return;
+  try{
+    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{
+      writeText:function(t){ return window.AndroidBridge.copy(String(t)) ? Promise.resolve() : Promise.reject(new Error('copy failed')); }
+    }});
+  }catch(e){}
+})();
+</script>
+<script>
+// ===== コメント辞書：{n} は推しの名前に置き換わる =====
+const GROUPS = [
+  {label:"✨キラキラ", chip:"きら", keys:["きら","きらきら","きらこめ","かがや","とうと"], items:[
+    "✧*。٩(ˊᗜˋ*)و✧*。","☆*:.｡. o(≧▽≦)o .｡.:*☆","✨✨✨キラキラ✨✨✨","⋆｡˚✩ 素敵すぎ ✩˚｡⋆",
+    "✧˖° キラッ °˖✧","｡.:*☆ {n} ☆*:.｡",".+*:ﾟ+｡.☆ 輝いてる ☆.｡+ﾟ:*+.","✨💫✨ 今日もキラキラ ✨💫✨",
+    "✧･ﾟ: *✧･ﾟ:* {n} *:･ﾟ✧*:･ﾟ✧","☆ﾟ.*･｡ﾟ ｷﾗｷﾗ ﾟ｡･*.ﾟ☆","✨ˊ˗ {n}最強 ˗ˋ✨","✦✧✦ 尊い ✦✧✦",
+    "✧*。{n}が今日も尊い。*✧","✨✨✨✨✨✨✨"]},
+  {label:"💗ハート", chip:"はーと", keys:["はーと","はと","らぶ","こい","どきどき"], items:[
+    "♡♡♡ {n} ♡♡♡","💗💗💗だいすき💗💗💗","♥️♥️♥️♥️♥️","(♡˙︶˙♡)","❤︎❤︎ らぶ ❤︎❤︎",
+    "💞{n}に恋してる💞","♡ˎˊ˗ すき ˗ˋˏ♡","💕💕 ラブ注入 💕💕","(*´ε` *)ﾁｭｯ♡","💓ドキドキ💓",
+    "🫶🫶🫶","❣️❣️ 好きが止まらない ❣️❣️","💘 ハート撃ち抜かれた 💘"]},
+  {label:"⭐星・夜", chip:"ほし", keys:["ほし","つき","よる","よるわく","ながれぼし"], items:[
+    "☆彡 {n} ☆彡","★彡 流れ星に願った ★彡","⋆⁺₊⋆ ☾ ⋆⁺₊⋆","🌙✨ 夜枠ありがとう ✨🌙","🌟🌟🌟🌟🌟",
+    "⭐️ {n}は一番星 ⭐️","✩°｡⋆ 星いっぱい ⋆｡°✩","🌌 今夜も最高 🌌","☆.｡.:*・°☆.｡.:*・°☆"]},
+  {label:"🎀ゆめかわ", chip:"ゆめ", keys:["ゆめ","ゆめかわ","はな","りぼん","いやし"], items:[
+    "🌸🌸🌸 {n} 🌸🌸🌸","✿.*･ ゆめかわ ･*.✿","🎀 {n} 🎀","꒰ঌ {n} ໒꒱","❀ 癒される〜 ❀",
+    "🌷💐🌷 お花どうぞ 🌷💐🌷","🦄🌈 ゆめかわ 🌈🦄","🍓🎀🍓","✿ﾟ❀.(*´▽`*)❀.ﾟ✿","꒰ᐢ. .ᐢ꒱ ♡"]},
+  {label:"👑天使・姫", chip:"てんし", keys:["てんし","ひめ","おひめ","ぷりんせす"], items:[
+    "👼 天使降臨 👼","˚₊✧ 天使降臨 ✧₊˚","👑 {n}姫 👑","🏰 お姫様のお通りです 🏰","♔ 姫 ♔",
+    "😇✨ 浄化された ✨😇","🪽 {n}は天使 🪽"]},
+  {label:"🏆優勝・神", chip:"ゆう", keys:["ゆう","ゆうしょう","かみ","てん","てんさい","さいこう"], items:[
+    "優勝🏆🏆🏆","{n}優勝👑","👑 {n}が王 👑","🏆🏆🏆 文句なしの優勝 🏆🏆🏆","神回確定🙏✨",
+    "🙏🙏 神 🙏🙏","{n}天才！✨","天才すぎる…！","人間国宝🏅","殿堂入り🎖","最高すぎる😭✨"]},
+  {label:"🔥熱い", chip:"あつ", keys:["あつ","ほのお","もえ","きた"], items:[
+    "🔥🔥🔥🔥🔥","アツすぎる🔥","🔥{n}最高🔥","⚡️⚡️ 熱い ⚡️⚡️","💥 キタ━━(ﾟ∀ﾟ)━━!! 💥","🔥燃えてきた🔥","萌え〜💓"]},
+  {label:"🎉お祝い", chip:"おめ", keys:["おめ","おめでと","にじ","ぱーてぃ","いわい"], items:[
+    "🌈🌈🌈🌈🌈","🎉🎊🎉🎊🎉","🥳 おめでとう 🥳","🎉{n}おめでとう🎉","🌈 ハッピー 🌈","✨🎊 祝 🎊✨"]},
+  {label:"🎂誕生日", chip:"たん", keys:["たん","たんじょうび","ばーすでー","はっぴー"], items:[
+    "🎂 {n}お誕生日おめでとう 🎂","Happy Birthday {n}🎉","🎁🎂🎉 HBD 🎉🎂🎁","生まれてきてくれてありがとう💐",
+    "🕯🎂 ふーっ 🎂🕯","{n}誕生日おめでと〜🥳🥳","素敵な一年になりますように✨"]},
+  {label:"💐記念日", chip:"きねん", keys:["きねん","しゅうねん","であい"], items:[
+    "🎊 記念日おめでとう 🎊","これからもずっと推します🫶","出会えてよかった💐","{n}に出会えて幸せ✨","🎊 周年おめでとう 🎊"]},
+  {label:"😊顔文字", chip:"かお", keys:["かお","かおもじ"], items:[
+    "(≧▽≦)","٩(ˊᗜˋ*)و","(*´▽`*)","(｡•̀ᴗ-)✧","ヾ(≧▽≦*)o","(っ´ω`c)","(ﾉ∀`*)","( ˶ˆ꒳ˆ˵ )",
+    "(´；ω；｀)","ｷﾀ━━━━(ﾟ∀ﾟ)━━━━!!","(*ﾟ▽ﾟ)ﾉ","(๑•̀ㅂ•́)و✧","Σ(ﾟДﾟ)"]},
+  {label:"⛩和風", chip:"わふう", keys:["わふう","あっぱれ","いき","じんじゃ"], items:[
+    "🎐 風流 🎐","🌸 いと尊し 🌸","〜粋だねぇ〜","🍵 お茶どうぞ 🍵","⛩ 推し神社に参拝 ⛩","天晴れ！🎌"]},
+  {label:"📣コメ上げ", chip:"こめ", keys:["こめ","こめあげ","もり","もりあげ"], items:[
+    "コメ上げ失礼します✧","コメ上げ隊参上🔥🔥🔥","🔥コメントで盛り上げていこ🔥","📣みんなコメントよろしく〜！",
+    "⤴⤴⤴ コメ上げ ⤴⤴⤴","━━━━(ﾟ∀ﾟ)━━━━!!","💬💬💬 コメント祭り 💬💬💬","＼{n}の枠盛り上げよ／",
+    "初見さんもコメントしてね〜🙌","わっしょい！わっしょい！🎉","🎊🎊🎊🎊🎊🎊🎊","＼盛り上がってきた〜！／"]},
+  {label:"👏拍手", chip:"ぱち", keys:["ぱち","ぱちぱち","はくしゅ","8"], items:[
+    "88888888","👏👏👏👏👏","ﾊﾟﾁﾊﾟﾁ(ﾉ´∀｀*)ﾊﾟﾁﾊﾟﾁ","8888👏👏8888","👏✨すごい✨👏","{n}おめでと〜👏🎉"]},
+  {label:"👋初見・挨拶", chip:"はつ", keys:["はつ","しょけん","あいさつ","おは","こん","ようこそ"], items:[
+    "初見です！よろしくお願いします✧","初見さんいらっしゃい〜🙌✨","ようこそ〜！ゆっくりしてってね♡",
+    "おはよう〜☀️✨","☀️おはよ〜 今日もがんばろ☀️","こんばんは〜🌙✨","こんにちは〜！(*´▽`*)ﾉ"]},
+  {label:"🏠おかえり", chip:"おかえ", keys:["おかえ","ただいま","いって","あいさつ"], items:[
+    "おかえり〜！待ってたよ♡","🏠おかえり〜🏠","ただいま〜🏠✨","いってらっしゃい〜👋✨","いってら〜！気をつけてね🚃"]},
+  {label:"👍ほめる", chip:"ない", keys:["ない","ないす","すご","えぐ"], items:[
+    "ないすー！👍✨","ナイス〜！٩(ˊᗜˋ*)و","NICE!!!👏","すごっ！！✨","えぐい🔥🔥"]},
+  {label:"💕推し・かわいい", chip:"すき", keys:["すき","だいすき","かわ","かわいい","おし"], items:[
+    "{n}すき〜♡","♡♡ すき ♡♡","(*´ω｀*)すき…","かわいい〜♡","{n}かわいすぎ問題😳","かわいい×100💕","{n}が推しで幸せ💖"]},
+  {label:"💪応援", chip:"がん", keys:["がん","がんば","おうえん","ふぁいと"], items:[
+    "がんばれ〜！📣✨","{n}ファイト！٩( 'ω' )و","応援してるよ💪✨","ずっと応援してる🔥","＼{n}がんばれ／📣📣"]},
+  {label:"🏁イベント", chip:"いべ", keys:["いべ","いべんと","らんく","らすと"], items:[
+    "イベント一緒に走ろう🏃‍♀️💨","ランクアップおめでとう🎉","📈 ランク上がれ〜 📈","最後まで走り切ろう🏁",
+    "目標達成できますように🙏✨","ラストスパート🔥🔥"]},
+  {label:"🎤歌枠", chip:"うた", keys:["うた","うま","うたわく","あんこーる"], items:[
+    "歌うま🎤✨","🎶🎶🎶","鳥肌立った…🎤","🎤{n}の歌声最高🎤","もう一曲〜🙏🎶","アンコール！👏👏"]},
+  {label:"🎮ゲーム", chip:"げーむ", keys:["げーむ","ぷれい","ないすぷれい","どんまい"], items:[
+    "ないすぷれい🎮","うますぎ🎮✨","ドンマイ🙌","勝てる勝てる🔥","GG👏"]},
+  {label:"🍻乾杯", chip:"かんぱい", keys:["かんぱい","のむ","のみ"], items:[
+    "かんぱ〜い🍻","🥂 乾杯 🥂","飲みすぎ注意🍺😂"]},
+  {label:"🙏感謝・ギフト", chip:"あり", keys:["あり","ありがと","かんしゃ","ぎふ","ぎふと"], items:[
+    "ありがとう〜🙏✨","ありがと♡","🙏感謝感激🙏","ギフトありがとう〜🎁✨","🎁ナイスギフト🎁"]},
+  {label:"😂笑", chip:"わら", keys:["わら","くさ","w"], items:[
+    "ｗｗｗｗｗ","草🌱🌱🌱","笑笑笑笑","(≧∇≦)ﾌﾞﾊｯ!"]},
+  {label:"🥺おつ・引き止め", chip:"おつ", keys:["おつ","おつかれ","まだ","えんちょう"], items:[
+    "おつかれさま〜✧*。","✨おつかれさまでした✨楽しかった！","乙です〜(*´ω｀*)","今日も枠ありがとう〜🙏✨",
+    "まだ終わらないで〜🥺","もうちょっとだけ…🥺🙏"]},
+  {label:"🌙おやすみ", chip:"おや", keys:["おや","おやすみ","ねる"], items:[
+    "おやすみ〜🌙💤","🌙おやすみなさい ゆっくり休んでね🌙","⋆｡˚☽˚｡⋆ おやすみ ⋆｡˚☽˚｡⋆"]}
+];
+// 好きな言葉をデコるときの飾り
+const FRAMES = [
+  ["✧*。","。*✧"],["☆*:.｡. "," .｡.:*☆"],["✨","✨"],["✨ˊ˗ "," ˗ˋ✨"],["⋆｡˚✩ "," ✩˚｡⋆"],[".+*:ﾟ+｡.☆ "," ☆.｡+ﾟ:*+."],
+  ["✧˖° "," °˖✧"],["✧･ﾟ: *"," *:･ﾟ✧"],["✦ "," ✦"],["💫 "," 💫"],
+  ["💖","💖"],["♡♡ "," ♡♡"],["💞","💞"],["♡ˎˊ˗ "," ˗ˋˏ♡"],["","♡"],["🫶 "," 🫶"],
+  ["☆彡 "," ☆彡"],["🌙 "," 🌙"],["⭐️ "," ⭐️"],["★☆ "," ☆★"],
+  ["🌸 "," 🌸"],["🎀 "," 🎀"],["꒰ "," ꒱"],["✿ "," ✿"],["🦄 "," 🌈"],
+  ["👑 "," 👑"],["🏆 "," 🏆"],["🔥","🔥"],["⚡️ "," ⚡️"],["💥 "," 💥"],
+  ["＼","／"],["📣","！"],["━━","━━!!"],["⤴⤴ "," ⤴⤴"],["🎉","🎉"],["👏","👏"],
+  ["","٩(ˊᗜˋ*)و"],["","(*´▽`*)"],["『","』✨"],["【","】"],["〜","〜♪"],["⛩ "," ⛩"]
+];
+// ===============================================
+
+// 漢字・カタカナでも探せるようにする別名（カタカナは自動でひらがなに直して照合）
+const ALIAS = {
+  "きら":["輝","尊","素敵"], "はーと":["愛","恋","大好"], "ほし":["星","月","夜","流れ星"],
+  "ゆめ":["夢","花","癒"], "てんし":["天使","姫","王女"], "ゆう":["優勝","神","天才","最高","王"],
+  "あつ":["熱","炎","燃","萌"], "おめ":["祝","虹"], "たん":["誕生","生まれ"], "きねん":["記念","周年","出会"],
+  "かお":["顔"], "わふう":["和","粋","天晴","神社"], "こめ":["盛り上"], "ぱち":["拍手"],
+  "はつ":["初見","挨拶"], "おかえ":["お帰","帰","行って"], "ない":["凄"], "すき":["好","可愛","推し"],
+  "がん":["頑張","応援"], "いべ":["順位","目標"], "うた":["歌"], "げーむ":["勝","試合"],
+  "かんぱい":["乾杯","飲","酒"], "あり":["感謝","有難","贈"], "わら":["笑","草"],
+  "おつ":["お疲","乙","延長"], "おや":["寝","お休"]
+};
+GROUPS.forEach(g=>{ if(ALIAS[g.chip]) g.keys.push(...ALIAS[g.chip]); });
+
+const $=id=>document.getElementById(id);
+const q=$("q"), nm=$("nm");
+const toHira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const load=(k)=>{ try{ return JSON.parse(localStorage.getItem(k)||"[]"); }catch(e){ return []; } };
+const save=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+let hist=load("kiracome_hist"), favs=load("kiracome_favs"), mine=load("kiracome_mine");
+try{ nm.value = localStorage.getItem("kiracome_name") || ""; }catch(e){}
+let mode="search";
+
+const TOTAL = GROUPS.reduce((a,g)=>a+g.items.length,0);
+$("sub").innerHTML="コメント<b>"+TOTAL+"</b>種＋デコ<b>"+FRAMES.length+"</b>パターン";
+
+// カテゴリのチップ
+function chip(label, cls, onClick, data){
+  const b=document.createElement("button");
+  b.className="chip"+(cls?" "+cls:""); b.type="button"; b.textContent=label;
+  Object.assign(b.dataset,data); b.onclick=onClick; $("chips").appendChild(b);
+}
+chip("☆お気に入り","sp",()=>{ mode="fav"; render(); },{m:"fav"});
+chip("✏️マイコメ","sp",()=>{ mode="mine"; render(); },{m:"mine"});
+chip("🎲ガチャ","sp",()=>{ mode="gacha"; render(); },{m:"gacha"});
+GROUPS.forEach(g=>chip(g.label,"",()=>{ mode="search"; q.value=g.chip; render(); },{k:g.chip}));
+
+function rowEl(text, onDelete){
+  const r=document.createElement("div"); r.className="row";
+  const cp=document.createElement("button"); cp.className="cp"; cp.type="button";
+  cp.innerHTML='<span class="t"></span><span class="p">コピー</span>';
+  cp.querySelector(".t").textContent=text;
+  cp.onclick=()=>copy(text,r);
+  const f=document.createElement("button"); f.className="fav"; f.type="button";
+  const on=favs.includes(text); f.classList.toggle("on",on); f.textContent=on?"★":"☆";
+  f.setAttribute("aria-label", on?"お気に入りから外す":"お気に入りに入れる");
+  f.onclick=()=>{ favs = favs.includes(text) ? favs.filter(t=>t!==text) : [text,...favs]; save("kiracome_favs",favs); render(); };
+  r.append(cp,f);
+  if(onDelete){
+    const d=document.createElement("button"); d.className="del"; d.type="button"; d.textContent="削除";
+    d.setAttribute("aria-label","マイコメから削除");
+    let t=null;
+    d.onclick=()=>{
+      if(!d.classList.contains("arm")){ d.classList.add("arm"); d.textContent="消す?"; t=setTimeout(()=>{ d.classList.remove("arm"); d.textContent="削除"; },3000); return; }
+      clearTimeout(t); onDelete();
+    };
+    r.appendChild(d);
+  }
+  return r;
+}
+function sectionEl(title, texts, onDelete){
+  const s=document.createElement("section");
+  s.innerHTML='<h2><span class="lb"></span><span>'+texts.length+'件</span></h2><div class="list"></div>';
+  s.querySelector(".lb").textContent=title;
+  const l=s.querySelector(".list");
+  texts.forEach(t=>l.appendChild(rowEl(t, onDelete ? ()=>onDelete(t) : null)));
+  return s;
+}
+const esc=s=>s.replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+
+function render(){
+  const raw=q.value.trim(), key=toHira(raw).toLowerCase();
+  const name=nm.value.trim()||"推し";
+  const fill=t=>t.replaceAll("{n}",name);
+  const out=$("out"); out.innerHTML="";
+  let total=0;
+
+  if(mode==="fav"){
+    if(favs.length){ out.appendChild(sectionEl("☆お気に入り",favs)); total=favs.length; }
+    else out.innerHTML='<p class="empty">コメントの右にある☆を押すと、ここに貯まります。よく使うコメ上げを入れておくと配信中に速いです。</p>';
+    $("status").innerHTML="お気に入り <b>"+favs.length+"</b>件";
+  }else if(mode==="mine"){
+    const box=document.createElement("section");
+    box.innerHTML='<h2><span>✏️マイコメを登録</span><span></span></h2>'+
+      '<div class="mine-add"><input id="mineIn" type="text" placeholder="例：今日も来たよ〜🙌" autocomplete="off" enterkeyhint="done"><button type="button" id="mineBtn">登録</button></div>'+
+      '<p class="hint">自分でよく打つコメントを登録すると、ここからタップでコピーできます。検索にも出ます。</p>';
+    out.appendChild(box);
+    const inp=box.querySelector("#mineIn");
+    const add=()=>{
+      const v=inp.value.trim(); if(!v){ inp.focus(); return; }
+      mine=[v,...mine.filter(t=>t!==v)]; save("kiracome_mine",mine);
+      showToast("マイコメに登録しました"); render();
+      const ni=document.getElementById("mineIn"); if(ni) ni.focus();
+    };
+    box.querySelector("#mineBtn").onclick=add;
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.isComposing){ e.preventDefault(); add(); } });
+    if(mine.length){
+      out.appendChild(sectionEl("✏️マイコメ",mine,t=>{ mine=mine.filter(x=>x!==t); save("kiracome_mine",mine); showToast("削除しました"); render(); }));
+    }
+    $("status").innerHTML="マイコメ <b>"+mine.length+"</b>件";
+  }else if(mode==="gacha"){
+    const all=GROUPS.flatMap(g=>g.items).map(fill);
+    const pick=[...all].sort(()=>Math.random()-.5).slice(0,10);
+    const s=sectionEl("🎲ガチャ結果",pick);
+    const again=document.createElement("button"); again.className="again"; again.type="button"; again.textContent="もう一回まわす";
+    again.onclick=render; s.appendChild(again);
+    out.appendChild(s);
+    $("status").innerHTML="全"+all.length+"種からランダムに <b>10</b>件";
+  }else{
+    const groups = key ? GROUPS.filter(g=>g.keys.some(k=>k.startsWith(key)||key.startsWith(k))) : GROUPS;
+    const exact = GROUPS.some(g=>g.keys.includes(key));
+    const shown=new Set();
+    if(key){
+      const myHits=mine.filter(t=>toHira(t).toLowerCase().includes(key));
+      if(myHits.length){ total+=myHits.length; myHits.forEach(t=>shown.add(t)); out.appendChild(sectionEl("✏️マイコメ",myHits)); }
+    }
+    groups.forEach(g=>{ const items=g.items.map(fill); total+=items.length; items.forEach(t=>shown.add(t)); out.appendChild(sectionEl(g.label,items)); });
+    if(key){
+      const textHits=GROUPS.flatMap(g=>g.items).map(fill).filter(t=>!shown.has(t) && toHira(t).toLowerCase().includes(key));
+      const uniq=[...new Set(textHits)];
+      if(uniq.length){ total+=uniq.length; out.appendChild(sectionEl("「"+raw+"」を含むコメント",uniq)); }
+    }
+    if(raw && !exact){
+      const deco=FRAMES.map(([a,b])=>a+raw+b);
+      total+=deco.length;
+      out.appendChild(sectionEl("「"+raw+"」をデコる",deco));
+    }
+    $("status").innerHTML = raw ? "「"+esc(raw)+"」の候補 <b>"+total+"</b>件" : "全部の候補 <b>"+total+"</b>件";
+  }
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",
+    (c.dataset.m && c.dataset.m===mode) || (mode==="search" && c.dataset.k===key)));
+  renderHist();
+}
+
+function renderHist(){
+  const box=$("hist"); box.innerHTML="";
+  $("histSec").hidden = hist.length===0 || mode!=="search";
+  hist.forEach(t=>box.appendChild(rowEl(t)));
+}
+
+let toastT=null;
+function showToast(msg){
+  const toast=$("toast"); toast.textContent=msg; toast.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>toast.classList.remove("show"),1600);
+}
+async function copy(text,row){
+  let ok=false;
+  try{ await navigator.clipboard.writeText(text); ok=true; }catch(e){
+    try{
+      const ta=document.createElement("textarea"); ta.value=text; ta.setAttribute("readonly","");
+      ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta);
+      ta.select(); ok=document.execCommand("copy"); ta.remove();
+    }catch(e2){ ok=false; }
+  }
+  showToast(ok ? "コピーしました → コメント欄に貼ってね" : "コピーできませんでした。長押しでコピーしてね");
+  if(ok){
+    row.classList.add("done"); row.querySelector(".p").textContent="済";
+    hist=[text,...hist.filter(t=>t!==text)].slice(0,10);
+    save("kiracome_hist",hist); renderHist();
+  }
+}
+
+q.addEventListener("input",()=>{ mode="search"; render(); });
+nm.addEventListener("input",()=>{ try{ localStorage.setItem("kiracome_name", nm.value.trim()); }catch(e){} render(); });
+render();
+
+// iPhoneのSafariで直接開いたときだけ「ホーム画面に追加」の案内を出す
+try{
+  const framed = window.self!==window.top;
+  const standalone = window.navigator.standalone===true || matchMedia("(display-mode: standalone)").matches;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(!framed && !standalone && ios) $("install").style.display="block";
+}catch(e){}
+// 自前サーバーで動かすとオフラインでも開けるようにする
+try{ if("serviceWorker" in navigator && window.self===window.top){ navigator.serviceWorker.register("sw.js").catch(()=>{}); } }catch(e){}
+</script>
+</body>
+</html>
