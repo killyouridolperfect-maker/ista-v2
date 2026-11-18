@@ -29,11 +29,30 @@ public class ClipAccessibilityService extends AccessibilityService {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private long lastTrigger = 0;
+    private QuickPanel quick;
+    private final android.content.SharedPreferences.OnSharedPreferenceChangeListener prefListener =
+            (p, key) -> {
+                if (QuickPanel.KEY_BUBBLE.equals(key) && quick != null) quick.syncBubble();
+            };
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         showStatusNotification();
+        quick = new QuickPanel(this);
+        quick.syncBubble();
+        QuickPanel.prefs(this).registerOnSharedPreferenceChangeListener(prefListener);
+        try {
+            android.accessibilityservice.AccessibilityButtonController abc = getAccessibilityButtonController();
+            abc.registerAccessibilityButtonCallback(
+                    new android.accessibilityservice.AccessibilityButtonController.AccessibilityButtonCallback() {
+                        @Override
+                        public void onClicked(android.accessibilityservice.AccessibilityButtonController controller) {
+                            if (quick != null) quick.togglePanel();
+                        }
+                    });
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
@@ -96,6 +115,7 @@ public class ClipAccessibilityService extends AccessibilityService {
 
     private void trigger() {
         long now = SystemClock.uptimeMillis();
+        if (now - ClipUtil.lastSelfCopy < 2000) return; // our own copy / paste
         if (now - lastTrigger < 800) return;
         lastTrigger = now;
         // Give the other app a moment to actually put the text on the clipboard.
@@ -156,6 +176,11 @@ public class ClipAccessibilityService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
+        try {
+            QuickPanel.prefs(this).unregisterOnSharedPreferenceChangeListener(prefListener);
+            if (quick != null) quick.destroy();
+        } catch (Exception ignored) {
+        }
         try {
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm != null) nm.cancel(NOTIFICATION_ID);

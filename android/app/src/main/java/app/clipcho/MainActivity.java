@@ -196,6 +196,26 @@ public class MainActivity extends Activity {
         lpCard.topMargin = dp(12);
         root.addView(setupCard, lpCard);
 
+        // Floating button on/off
+        LinearLayout bubbleRow = new LinearLayout(this);
+        bubbleRow.setGravity(Gravity.CENTER_VERTICAL);
+        bubbleRow.setPadding(dp(14), dp(10), dp(8), dp(10));
+        bubbleRow.setBackground(box(cCard, cLine, 14));
+        LinearLayout bubbleTexts = new LinearLayout(this);
+        bubbleTexts.setOrientation(LinearLayout.VERTICAL);
+        bubbleTexts.addView(text("画面に呼び出しボタンを出す", 15, cText, true));
+        bubbleTexts.addView(text("どのアプリの上でも履歴を開いて、入力中の欄にそのまま貼り付けできます（自動保存ONのとき）", 12, cMuted, false));
+        bubbleRow.addView(bubbleTexts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        android.widget.Switch bubbleSwitch = new android.widget.Switch(this);
+        bubbleSwitch.setChecked(QuickPanel.bubbleEnabled(this));
+        bubbleSwitch.setContentDescription("画面に呼び出しボタンを出す");
+        bubbleSwitch.setOnCheckedChangeListener((b, on) ->
+                QuickPanel.prefs(this).edit().putBoolean(QuickPanel.KEY_BUBBLE, on).apply());
+        bubbleRow.addView(bubbleSwitch);
+        LinearLayout.LayoutParams lpBubble = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpBubble.topMargin = dp(12);
+        root.addView(bubbleRow, lpBubble);
+
         // Search + paste
         LinearLayout searchRow = new LinearLayout(this);
         searchRow.setGravity(Gravity.CENTER_VERTICAL);

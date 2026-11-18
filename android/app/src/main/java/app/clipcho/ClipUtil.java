@@ -50,10 +50,14 @@ public final class ClipUtil {
         return extras.getBoolean("android.content.extra.IS_SENSITIVE", false);
     }
 
+    /** When this app last wrote the clipboard (uptime ms); the auto-save service ignores copies right after it. */
+    public static volatile long lastSelfCopy = 0;
+
     public static boolean copy(Context ctx, String text) {
         try {
             ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
             if (cm == null) return false;
+            lastSelfCopy = android.os.SystemClock.uptimeMillis();
             cm.setPrimaryClip(ClipData.newPlainText(SELF_LABEL, text));
             return true;
         } catch (Exception e) {
