@@ -73,9 +73,9 @@ function render(){
   $('#count').textContent = shown.length === all.length ? all.length + '件' : shown.length + ' / ' + all.length + '件';
   const el = $('#list');
   if (!all.length){
-    el.innerHTML = '<div class="empty"><h2>使い方は3ステップ</h2><ol>' +
-      '<li>他のアプリで文字をコピーする</li>' +
-      '<li>このページの「＋ 貼り付け」を押す（出てきた「ペースト」も押す）</li>' +
+    el.innerHTML = '<div class="empty"><h2>保存のしかた</h2><ol>' +
+      '<li><b>Androidのおすすめ</b>：他のアプリで文字を選ぶ →「共有」→「クリップ帳」。クリップ帳が開いて自動で保存されます</li>' +
+      '<li>または、コピーしてからこのページの「＋ 貼り付け」を押す</li>' +
       '<li>あとは一覧のカードをタップすれば、いつでも再コピーできます</li></ol></div>';
     return;
   }
@@ -187,10 +187,16 @@ $('#impFile').addEventListener('change', async e => {
 S.items = load();
 $('#status').className = 'status warn';
 $('#statusText').textContent = 'この端末に保存';
-// Shortcut / back-tap entry: index.html?add=<text>
+// Entry points:
+//  - iPhone Shortcut / Back Tap: index.html?add=<text>
+//  - Android share sheet (Web Share Target): index.html?text=<text>&url=<url>&title=<title>
 const params = new URLSearchParams(location.search);
-if (params.has('add')){
-  const t = params.get('add');
+if (['add', 'text', 'url', 'title'].some(k => params.has(k))){
+  let t = params.get('add');
+  if (t === null){
+    const text = (params.get('text') || '').trim(), url = (params.get('url') || '').trim(), title = (params.get('title') || '').trim();
+    t = [text || (url ? '' : title), url && !text.includes(url) ? url : ''].filter(Boolean).join('\n');
+  }
   history.replaceState(null, '', location.pathname);
   addClip(t, true);
 }
